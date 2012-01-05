@@ -21,10 +21,6 @@ namespace DrumBot
         private Timer liveViewTimer;
         public Form1()
         {
-            Image<Bgr, Byte> screenshot = new Image<Bgr, byte>("screenshot.bmp");
-            ImageProcessing processing = new ImageProcessing();
-            processing.ProcessImage(screenshot);
-
             InitializeComponent();
             captureThread = new Thread(new ThreadStart(cv.StartCapturing));
             captureThread.Name = "captureThread";

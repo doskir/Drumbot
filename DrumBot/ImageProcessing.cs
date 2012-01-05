@@ -13,7 +13,7 @@ namespace DrumBot
     {
         //will include hardcoded positions and rotations for rock band 2 drum mode
         //rotations are too slow, DONT USE THEM
-        public void ProcessImage(Image<Bgr,Byte> screenshot)
+        public void ProcessImage(Image<Bgr,Byte> screenshot,out Image<Bgr,byte> greenTrack)
         {
             DateTime startTime = DateTime.Now;
             Image<Bgr, Byte> playArea = screenshot.Copy(new Rectangle(218, 222, 272, 171));
@@ -21,9 +21,11 @@ namespace DrumBot
             //Image<Bgr, Byte> redTrack = playArea.Copy(new Rectangle(0, 0, 96, 171));
            // redTrack = redTrack.Rotate(-15.0d, new Bgr(0, 0, 0), false);
            // redTrack.Save("redtrack.bmp");
-            Image<Bgr, Byte> greenTrack = ExtractGreenTrack(playArea);
+            greenTrack = ExtractGreenTrack(playArea);
             greenTrack = SmoothImage(greenTrack);
-            greenTrack.Save("greentrack.bmp");
+
+            //greenTrack.Save("greentrack.bmp");
+            
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
@@ -47,6 +49,7 @@ namespace DrumBot
             rightCover.Add(new Point(95, 0));
             greenTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
 
+
             return greenTrack;
         }
         public Image<Bgr,byte> SmoothImage(Image<Bgr,byte> image)
@@ -56,5 +59,6 @@ namespace DrumBot
             image = image.SmoothGaussian(3);
             return image;
         }
+        
     }
 }
