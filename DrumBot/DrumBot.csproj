@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="ImageProcessing.cs" />
     <Compile Include="MMTimer.cs" />
+    <Compile Include="Note.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="DebugWindow.resx">

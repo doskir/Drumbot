@@ -16,7 +16,9 @@ namespace DrumBot
         public Image<Bgr, byte> RedTrack;
         public Image<Bgr, byte> YellowTrack;
         public Image<Bgr, byte> BlueTrack;
-        public Image<Bgr, byte> GreenTrack; 
+        public Image<Bgr, byte> GreenTrack;
+        public List<Note> Notes = new List<Note>();
+
         public CapturedImage(Image<Bgr, Byte> image, DateTime captureTime)
         {
             Image = image;
@@ -33,10 +35,78 @@ namespace DrumBot
             BlueTrack = ExtractBlueTrack(playArea);
             GreenTrack = ExtractGreenTrack(playArea);
 
+            List<Rectangle> RedTrackRectangles = ExtractFeatureRectangles(RedTrack);
+            List<Rectangle> YellowTrackRectangles = ExtractFeatureRectangles(YellowTrack);
+            List<Rectangle> BlueTrackRectangles = ExtractFeatureRectangles(BlueTrack);
+            List<Rectangle> GreenTrackRectangles = ExtractFeatureRectangles(GreenTrack);
+            AddNotesFromRectangles(RedTrackRectangles, NoteType.Red);
+            AddNotesFromRectangles(YellowTrackRectangles, NoteType.Yellow);
+            AddNotesFromRectangles(BlueTrackRectangles, NoteType.Blue);
+            AddNotesFromRectangles(GreenTrackRectangles, NoteType.Green);
+
+            DrawFeatureRectangles(RedTrackRectangles, ref RedTrack, new Bgr(0, 0, 255));
+            DrawFeatureRectangles(YellowTrackRectangles, ref YellowTrack, new Bgr(0, 255, 255));
+            DrawFeatureRectangles(BlueTrackRectangles, ref BlueTrack, new Bgr(255, 0, 0));
+            DrawFeatureRectangles(GreenTrackRectangles, ref GreenTrack, new Bgr(0, 255, 0));
+
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
             Debug.WriteLine(elapsedTime.TotalMilliseconds);
         }
+        private void AddNotesFromRectangles(List<Rectangle> rectangles,NoteType defaultColor)
+        {
+            foreach(Rectangle rectangle in rectangles)
+            {
+                NoteType color = defaultColor;
+                if(rectangle.Height < 15)
+                    color = NoteType.Orange;
+                Notes.Add(new Note(rectangle, color));
+            }
+        }
+
+        private void DrawFeatureRectangles(List<Rectangle> rectangles,ref Image<Bgr,byte> track,Bgr color)
+        {
+            foreach (Rectangle rectangle in rectangles.OrderBy(r => r.Y))
+            {
+                //if its less than 15 pixels high it is PROBABLY an orange note
+                //using white for easy visibility
+                if (rectangle.Height < 15)
+                    track.Draw(rectangle, new Bgr(255,255 , 255), 2);
+                else
+                    track.Draw(rectangle, color, 2);
+            }
+        }
+        private List<Rectangle> ExtractFeatureRectangles(Image<Bgr, byte> track)
+        {
+            List<Rectangle> rectangles = new List<Rectangle>();
+            Image<Gray, byte> grayScaleImage = new Image<Gray, byte>(track.Bitmap);
+            var cannyEdges = grayScaleImage.Canny(new Gray(200), new Gray(20));
+            for (Contour<Point> contours =
+                     cannyEdges.FindContours(Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
+                                             Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_EXTERNAL);
+                 contours != null;
+                 contours = contours.HNext)
+            {
+                Rectangle newRectangle = contours.GetMinAreaRect().MinAreaRect();
+                bool intersectionFound = false;
+                for (int i = 0; i < rectangles.Count; i++)
+                {
+                    Rectangle rectangle = rectangles[i];
+                    if (newRectangle.IntersectsWith(rectangle) || newRectangle.Contains(rectangle))
+                    {
+                        rectangle.Intersect(newRectangle);
+                        intersectionFound = true;
+                        break;
+                    }
+                }
+                if (newRectangle.Width < 30 || newRectangle.Height < 5)
+                    continue;
+                if (!intersectionFound)
+                    rectangles.Add(newRectangle);
+            }
+            return rectangles;
+        }
+
         public static Image<Bgr, byte> ExtractRedTrack(Image<Bgr, byte> playArea)
         {
             Image<Bgr, Byte> redTrack = playArea.Copy(new Rectangle(0, 0, 96, 171));
