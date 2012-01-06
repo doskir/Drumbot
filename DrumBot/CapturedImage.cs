@@ -44,40 +44,53 @@ namespace DrumBot
             AddNotesFromRectangles(BlueTrackRectangles, NoteType.Blue);
             AddNotesFromRectangles(GreenTrackRectangles, NoteType.Green);
 
-            DrawFeatureRectangles(RedTrackRectangles, ref RedTrack, new Bgr(0, 0, 255));
-            DrawFeatureRectangles(YellowTrackRectangles, ref YellowTrack, new Bgr(0, 255, 255));
-            DrawFeatureRectangles(BlueTrackRectangles, ref BlueTrack, new Bgr(255, 0, 0));
-            DrawFeatureRectangles(GreenTrackRectangles, ref GreenTrack, new Bgr(0, 255, 0));
+            DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Red).ToList(), ref RedTrack);
+            DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Yellow).ToList(), ref YellowTrack);
+            DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Blue).ToList(), ref BlueTrack);
+            DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Green).ToList(), ref GreenTrack);
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
             Debug.WriteLine(elapsedTime.TotalMilliseconds);
         }
-        private void AddNotesFromRectangles(List<Rectangle> rectangles,NoteType defaultColor)
+        private void AddNotesFromRectangles(List<Rectangle> rectangles,NoteType trackColor)
         {
             foreach(Rectangle rectangle in rectangles)
             {
-                NoteType color = defaultColor;
+                NoteType color = trackColor;
                 if (rectangle.Width / (double)rectangle.Height >= 4.0f)
                     color = NoteType.Orange;
-                Notes.Add(new Note(rectangle, color));
+                Notes.Add(new Note(rectangle, color,trackColor));
             }
         }
-
-        private void DrawFeatureRectangles(List<Rectangle> rectangles,ref Image<Bgr,byte> track,Bgr color)
+        private void DrawNotes(List<Note> notesOfASingleTrack,ref Image<Bgr,byte> track)
         {
-            foreach (Rectangle rectangle in rectangles.OrderBy(r => r.Y))
+            MCvFont font = new MCvFont(Emgu.CV.CvEnum.FONT.CV_FONT_HERSHEY_PLAIN, 2,1);
+            font.thickness = 2;
+            foreach(Note note in notesOfASingleTrack)
             {
-                //using white for easy visibility
-                //if the the rectangle is 4 times as wide as its high it is an orange note
-                if(rectangle.Width/(double)rectangle.Height >= 4.0f)
+                Bgr color = new Bgr(0, 0, 0);
+                switch(note.Color)
                 {
-                    track.Draw(rectangle, new Bgr(255, 255, 255), 2);
+                    case NoteType.Red:
+                        color = new Bgr(0, 0, 255);
+                        break;
+                    case NoteType.Yellow:
+                        color = new Bgr(0, 255, 255);
+                        break;
+                    case NoteType.Blue:
+                        color = new Bgr(255, 0, 0);
+                        break;
+                    case NoteType.Green:
+                        color = new Bgr(0, 255, 0);
+                        break;
+                    case NoteType.Orange:
+                        color = new Bgr(255, 255, 255);
+                        break;
                 }
-                else
-                {
-                    track.Draw(rectangle, color, 2);
-                }
+                track.Draw(note.Rectangle, color, 2);
+                track.Draw(((int)note.DistanceToTarget).ToString(), ref font,
+                           new Point(note.Rectangle.Left,note.Rectangle.Bottom), new Bgr(128, 128, 128));
             }
         }
         private List<Rectangle> ExtractFeatureRectangles(Image<Bgr, byte> track)
@@ -110,7 +123,6 @@ namespace DrumBot
             }
             return rectangles;
         }
-
         public static Image<Bgr, byte> ExtractRedTrack(Image<Bgr, byte> playArea)
         {
             Image<Bgr, Byte> redTrack = playArea.Copy(new Rectangle(0, 0, 96, playArea.Height));

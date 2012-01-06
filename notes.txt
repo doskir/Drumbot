@@ -1,0 +1,101 @@
+889,509
+dist = 173.92
+distcovered = NODATA
+triggerInFrames = NODATA
+actualTriggerIn = 16
+
+888,516
+dist = 166.90
+distcovered = 7.02
+triggerInFrames = 23.775
+actualTriggerIn = 15
+
+886,522
+dist = 160.59
+distcovered = 6.31
+triggerInFrames = 25.45
+actualTriggerIn = 14
+
+883,529
+dist = 153.05
+distcovered = 7.54
+triggerInFrames = 20.298
+actualTriggerIn = 13
+
+881,538
+dist = 143.84
+distcovered = 9.21
+triggerInFrames = 15.618
+actualTriggerIn = 12
+
+880,545
+dist = 136.82
+distcovered = 7.02
+triggerInFrames = 19.49
+actualTriggerIn = 11
+
+876,554
+dist = 127.09
+distcovered = 9.73
+triggerInFrames = 13.062
+actualTriggerIn = 10
+
+874,563
+dist = 117.88
+distcovered = 9.21
+triggerInFrames = 12.799
+actualTriggerIn = 9
+
+871,571
+dist = 109.38
+distcovered = 8.5
+triggerInFrames = 12.868 
+actualTriggerIn = 8
+
+867,582
+dist = 97.745
+distcovered = 11.635
+triggerInFrames = 8.4009
+actualTriggerIn = 7
+
+865,596
+dist = 83,678
+distcovered = 14.067
+triggerInFrames = 5.9485
+actualTriggerIn = 6
+
+862,610
+dist = 69,376
+distcovered = 14.302
+triggerInFrames = 4.8508
+actualTriggerIn = 5
+
+859,622
+dist = 57,009
+distcovered = 12.367
+triggerInFrames = 4.6098
+actualTriggerIn = 4
+
+856,633
+dist = 45,607
+distcovered = 11.402
+triggerInFrames = 3.9999
+actualTriggerIn = 3
+
+851,646
+dist = 31,780
+distcovered = 13.827
+triggerInFrames = 2.2984
+actualTriggerIn = 2
+
+848,661
+dist = 16,492
+distcovered = 15.288
+triggerInFrames = 1.0788
+actualTriggerIn = 1
+
+844,677
+dist = 0
+
+
+TARGET 844,677
