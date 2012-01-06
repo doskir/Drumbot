@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CapturedImage.cs" />
     <Compile Include="CaptureVideo.cs" />
     <Compile Include="DebugWindow.cs">
       <SubType>Form</SubType>

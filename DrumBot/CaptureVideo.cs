@@ -88,23 +88,5 @@ namespace DrumBot
             globCapture.Dispose();
             writerThread.Abort();
         }
-        public class CapturedImage
-        {
-            public Image<Bgr, Byte> Image;
-            public DateTime CaptureTime;
-            public CapturedImage(Image<Bgr,Byte> image,DateTime captureTime)
-            {
-                Image = image;
-                CaptureTime = captureTime;
-            }
-            public void Save(string path)
-            {
-                Image.Save(path);
-            }
-            public void Dispose()
-            {
-                Image.Dispose();
-            }
-        }
     }
 }

@@ -9,28 +9,33 @@ using Emgu.CV.Structure;
 
 namespace DrumBot
 {
-    class ImageProcessing
+    class CapturedImage
     {
-        //will include hardcoded positions and rotations for rock band 2 drum mode
-        //rotations are too slow, DONT USE THEM
-        public static void ProcessImage(Image<Bgr,Byte> screenshot,out Image<Bgr,byte> redTrack,out Image<Bgr,byte> yellowTrack,out Image<Bgr,byte> blueTrack,out Image<Bgr,byte> greenTrack)
+        public Image<Bgr, Byte> Image;
+        public DateTime CaptureTime;
+        public Image<Bgr, byte> RedTrack;
+        public Image<Bgr, byte> YellowTrack;
+        public Image<Bgr, byte> BlueTrack;
+        public Image<Bgr, byte> GreenTrack; 
+        public CapturedImage(Image<Bgr, Byte> image, DateTime captureTime)
         {
+            Image = image;
+            CaptureTime = captureTime;
             DateTime startTime = DateTime.Now;
-            Image<Bgr, Byte> playArea = screenshot.Copy(new Rectangle(218, 222, 272, 171));
+            Image<Bgr, Byte> playArea = image.Copy(new Rectangle(218, 222, 272, 171));
 
             playArea = SmoothImage(playArea);
             playArea = playArea.ThresholdBinary(new Bgr(120, 100, 100), new Bgr(255, 255, 255));
             playArea = SmoothImage(playArea);
 
-            redTrack = ExtractRedTrack(playArea);
-            yellowTrack = ExtractYellowTrack(playArea);
-            blueTrack = ExtractBlueTrack(playArea);
-            greenTrack = ExtractGreenTrack(playArea);
+            RedTrack = ExtractRedTrack(playArea);
+            YellowTrack = ExtractYellowTrack(playArea);
+            BlueTrack = ExtractBlueTrack(playArea);
+            GreenTrack = ExtractGreenTrack(playArea);
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
             Debug.WriteLine(elapsedTime.TotalMilliseconds);
-            //Image<Bgr,Byte> redTrack = ne
         }
         public static Image<Bgr, byte> ExtractRedTrack(Image<Bgr, byte> playArea)
         {
@@ -53,7 +58,7 @@ namespace DrumBot
         }
         public static Image<Bgr, byte> ExtractBlueTrack(Image<Bgr, byte> playArea)
         {
-            Image<Bgr, Byte> blueTrack = playArea.Copy(new Rectangle(134, 0,69, 171));
+            Image<Bgr, Byte> blueTrack = playArea.Copy(new Rectangle(134, 0, 69, 171));
 
             List<Point> rightCover = new List<Point>();
             rightCover.Add(new Point(40, 0));
@@ -75,7 +80,7 @@ namespace DrumBot
 
             return yellowTrack;
         }
-        public static Image<Bgr,byte> ExtractGreenTrack(Image<Bgr,byte> playArea)
+        public static Image<Bgr, byte> ExtractGreenTrack(Image<Bgr, byte> playArea)
         {
             Image<Bgr, Byte> greenTrack = playArea.Copy(new Rectangle(176, 0, 96, 171));
 
@@ -94,12 +99,22 @@ namespace DrumBot
 
             return greenTrack;
         }
-        public static Image<Bgr,byte> SmoothImage(Image<Bgr,byte> image)
+        public static Image<Bgr, byte> SmoothImage(Image<Bgr, byte> image)
         {
             //median smoothing with a size of 5 works good
             return image.SmoothMedian(5);
         }
-
-        
+        public void Save(string path)
+        {
+            Image.Save(path);
+        }
+        public void Dispose()
+        {
+            Image.Dispose();
+            RedTrack.Dispose();
+            YellowTrack.Dispose();
+            BlueTrack.Dispose();
+            GreenTrack.Dispose();
+        }
     }
 }
