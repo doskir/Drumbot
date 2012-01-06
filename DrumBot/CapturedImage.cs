@@ -24,7 +24,7 @@ namespace DrumBot
             Image = image;
             CaptureTime = captureTime;
             DateTime startTime = DateTime.Now;
-            Image<Bgr, Byte> playArea = image.Copy(new Rectangle(218, 222, 272, 171));
+            Image<Bgr, Byte> playArea = image.Copy(new Rectangle(218, 262, 272, 131));
 
             playArea = SmoothImage(playArea);
             playArea = playArea.ThresholdBinary(new Bgr(120, 100, 100), new Bgr(255, 255, 255));
@@ -58,7 +58,7 @@ namespace DrumBot
             foreach(Rectangle rectangle in rectangles)
             {
                 NoteType color = defaultColor;
-                if(rectangle.Height < 15)
+                if (rectangle.Width / (double)rectangle.Height >= 4.0f)
                     color = NoteType.Orange;
                 Notes.Add(new Note(rectangle, color));
             }
@@ -68,12 +68,16 @@ namespace DrumBot
         {
             foreach (Rectangle rectangle in rectangles.OrderBy(r => r.Y))
             {
-                //if its less than 15 pixels high it is PROBABLY an orange note
                 //using white for easy visibility
-                if (rectangle.Height < 15)
-                    track.Draw(rectangle, new Bgr(255,255 , 255), 2);
+                //if the the rectangle is 4 times as wide as its high it is an orange note
+                if(rectangle.Width/(double)rectangle.Height >= 4.0f)
+                {
+                    track.Draw(rectangle, new Bgr(255, 255, 255), 2);
+                }
                 else
+                {
                     track.Draw(rectangle, color, 2);
+                }
             }
         }
         private List<Rectangle> ExtractFeatureRectangles(Image<Bgr, byte> track)
@@ -109,61 +113,62 @@ namespace DrumBot
 
         public static Image<Bgr, byte> ExtractRedTrack(Image<Bgr, byte> playArea)
         {
-            Image<Bgr, Byte> redTrack = playArea.Copy(new Rectangle(0, 0, 96, 171));
+            Image<Bgr, Byte> redTrack = playArea.Copy(new Rectangle(0, 0, 96, playArea.Height));
 
             List<Point> leftCover = new List<Point>();
             leftCover.Add(new Point(0, 0));
-            leftCover.Add(new Point(61, 0));
-            leftCover.Add(new Point(0, 170));
+            leftCover.Add(new Point(45, 0));
+            leftCover.Add(new Point(0, playArea.Height -1));
             redTrack.FillConvexPoly(leftCover.ToArray(), new Bgr(0, 0, 0));
 
             List<Point> rightCover = new List<Point>();
-            rightCover.Add(new Point(65, 170));
+            rightCover.Add(new Point(65, 128));
+            rightCover.Add(new Point(91, 0));
             rightCover.Add(new Point(95, 0));
-            rightCover.Add(new Point(95, 170));
+            rightCover.Add(new Point(95, playArea.Height - 1));
             redTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
 
 
             return redTrack;
         }
-        public static Image<Bgr, byte> ExtractBlueTrack(Image<Bgr, byte> playArea)
-        {
-            Image<Bgr, Byte> blueTrack = playArea.Copy(new Rectangle(134, 0, 69, 171));
-
-            List<Point> rightCover = new List<Point>();
-            rightCover.Add(new Point(40, 0));
-            rightCover.Add(new Point(69, 170));
-            rightCover.Add(new Point(69, 0));
-            blueTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
-
-            return blueTrack;
-        }
         public static Image<Bgr, byte> ExtractYellowTrack(Image<Bgr, byte> playArea)
         {
-            Image<Bgr, Byte> yellowTrack = playArea.Copy(new Rectangle(66, 0, 69, 171));
+            Image<Bgr, Byte> yellowTrack = playArea.Copy(new Rectangle(66, 0, 69, playArea.Height));
 
             List<Point> leftCover = new List<Point>();
             leftCover.Add(new Point(0, 0));
-            leftCover.Add(new Point(34, 0));
+            leftCover.Add(new Point(20, 0));
             leftCover.Add(new Point(0, 170));
             yellowTrack.FillConvexPoly(leftCover.ToArray(), new Bgr(0, 0, 0));
 
             return yellowTrack;
         }
+        public static Image<Bgr, byte> ExtractBlueTrack(Image<Bgr, byte> playArea)
+        {
+            Image<Bgr, Byte> blueTrack = playArea.Copy(new Rectangle(134, 0, 69, playArea.Height));
+
+            List<Point> rightCover = new List<Point>();
+            rightCover.Add(new Point(45, 0));
+            rightCover.Add(new Point(69, playArea.Height - 1));
+            rightCover.Add(new Point(69, 0));
+            blueTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
+
+            return blueTrack;
+        }
         public static Image<Bgr, byte> ExtractGreenTrack(Image<Bgr, byte> playArea)
         {
-            Image<Bgr, Byte> greenTrack = playArea.Copy(new Rectangle(176, 0, 96, 171));
+            Image<Bgr, Byte> greenTrack = playArea.Copy(new Rectangle(176, 0, 96, playArea.Height));
 
             List<Point> leftCover = new List<Point>();
             leftCover.Add(new Point(0, 0));
-            leftCover.Add(new Point(28, 170));
-            leftCover.Add(new Point(0, 170));
+            leftCover.Add(new Point(7, 0));
+            leftCover.Add(new Point(28, playArea.Height - 1));
+            leftCover.Add(new Point(0, playArea.Height -1));
             greenTrack.FillConvexPoly(leftCover.ToArray(), new Bgr(0, 0, 0));
 
             List<Point> rightCover = new List<Point>();
-            rightCover.Add(new Point(33, 0));
-            rightCover.Add(new Point(93, 170));
-            rightCover.Add(new Point(95, 170));
+            rightCover.Add(new Point(50, 0));
+            rightCover.Add(new Point(95, playArea.Height -1));
             rightCover.Add(new Point(95, 0));
             greenTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
 
