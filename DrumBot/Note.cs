@@ -35,27 +35,118 @@ namespace DrumBot
 
         public bool MatchedToOldNote;
         public bool MatchedToNewNote;
-        public double PerFrameVelocityX;
-        public double PerFrameVelocityY;
+        private double _perFrameVelocityX;
+        private double _perFrameVelocityY;
+        public double PerFrameVelocityX
+        {
+            get { return _perFrameVelocityX; }
+            set
+            {
+                _lastPerFrameVelocityX = _perFrameVelocityX;
+                if (AvgVelocityX == 0)
+                    AvgVelocityX = value;
+                AvgVelocityX = (AvgVelocityX + value)/2;
+                _perFrameVelocityX = value;
+            }
+        }
+
+        public double PerFrameVelocityY
+        {
+            get { return _perFrameVelocityY; }
+            set
+            {
+                _lastPerFrameVelocityY = _perFrameVelocityY;
+                if(AvgVelocityY == 0)
+                    AvgVelocityY = value;
+                AvgVelocityY = (AvgVelocityY + value)/2;
+                _perFrameVelocityY = value;
+            }
+        }
+
+        private double _lastPerFrameVelocityX;
+        private double _lastPerFrameVelocityY;
+        public double AvgVelocityX;
+        public double AvgVelocityY;
         //keep track of how many times we have detected this exact note
         public int DetectedInFrames = 1;
-        public double FramesUntilHit
+        //velocity seems to multiply by about 1.2 each frame
+        public Rectangle PredictedPosition
+        {
+            get { 
+                Rectangle rectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width, Rectangle.Height);
+                rectangle.X += (int)Math.Round(PerFrameVelocityX*1.2);
+                rectangle.Y += (int)Math.Round(PerFrameVelocityY*1.2);
+                return rectangle;
+            }
+        }
+
+        private const int MaxFrames = 25;
+        public int FramesUntilHit
         {
             get
             {
+                //move the parts below into a function
                 //the velocity increases as the notes get closer to the bottom
-                double distancePerFrame = Math.Sqrt(Math.Pow(PerFrameVelocityX, 2) + Math.Pow(PerFrameVelocityY, 2));
-                double combFramesUntilHit = DistanceToTarget/Math.Abs(distancePerFrame);
-                double yFramesUntilHit = Math.Abs((TargetPoint.Y - Center.Y)/PerFrameVelocityY);
-                double avg = (combFramesUntilHit  + yFramesUntilHit)/2;
-                //Debug.WriteLine(Color.ToString());
-                //Debug.WriteLine("X:{0}\nY:{1}", Center.X, Center.Y);
-                //Debug.WriteLine("AFrames:{0}", avg);
-                //Debug.WriteLine("CFrames:{0}", combFramesUntilHit);
-                //Debug.WriteLine("---------");
-                return Math.Max(yFramesUntilHit, avg);
+                if (PerFrameVelocityY == 0)
+                    return Int32.MaxValue;
+                Rectangle predictedPositionRectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width,
+                                                                     Rectangle.Height);
+                int framesWithCurrentVelocity = 1;
+                for (; framesWithCurrentVelocity < MaxFrames; framesWithCurrentVelocity++)
+                {
+                    predictedPositionRectangle.X = predictedPositionRectangle.X
+                                                   +
+                                                   (int)
+                                                   Math.Round(PerFrameVelocityX*Math.Pow(1.1, framesWithCurrentVelocity));
+                    predictedPositionRectangle.Y = predictedPositionRectangle.Y
+                                                   +
+                                                   (int)
+                                                   Math.Round(PerFrameVelocityY*Math.Pow(1.1, framesWithCurrentVelocity));
+                    if (predictedPositionRectangle.Contains(TargetPoint))
+                        break;
+
+                }
+                predictedPositionRectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width,
+                                                           Rectangle.Height);
+
+                int framesWithPreviousVelocity = 1;
+                for (; framesWithPreviousVelocity < MaxFrames; framesWithPreviousVelocity++)
+                {
+                    predictedPositionRectangle.X = predictedPositionRectangle.X
+                                                   +
+                                                   (int)
+                                                   Math.Round(_lastPerFrameVelocityX
+                                                              *Math.Pow(1.1, framesWithPreviousVelocity));
+                    predictedPositionRectangle.Y = predictedPositionRectangle.Y
+                                                   + (int)Math.Round(_lastPerFrameVelocityY * Math.Pow(1.1, framesWithPreviousVelocity));
+                    if (predictedPositionRectangle.Contains(TargetPoint))
+                        break;
+                }
+                predictedPositionRectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width,
+                                                           Rectangle.Height);
+                int framesWithAvgVelocity = 1;
+                for (; framesWithAvgVelocity < MaxFrames; framesWithAvgVelocity++)
+                {
+                    predictedPositionRectangle.X = predictedPositionRectangle.X
+                                                   + (int) Math.Round(AvgVelocityX*Math.Pow(1.1, framesWithAvgVelocity));
+                    predictedPositionRectangle.Y = predictedPositionRectangle.Y
+                                                   + (int) Math.Round(AvgVelocityY*Math.Pow(1.1, framesWithAvgVelocity));
+                    if (predictedPositionRectangle.Contains(TargetPoint))
+                        break;
+                }
+                Debug.WriteLine("Cur:{0}\nPre:{1}\nAvg:{2}\nSeen:{3}\n", framesWithCurrentVelocity,
+                 framesWithPreviousVelocity,
+                 framesWithAvgVelocity, DetectedInFrames);
+                if (framesWithAvgVelocity < MaxFrames)
+                    return framesWithAvgVelocity;
+                if (framesWithCurrentVelocity < MaxFrames)
+                    return framesWithCurrentVelocity;
+                if (framesWithPreviousVelocity < MaxFrames)
+                    return framesWithPreviousVelocity;
+                return Int32.MaxValue;
             }
         }
+
         public Note(Rectangle rectangle,NoteType color,NoteType trackColor)
         {
             Rectangle = rectangle;

@@ -37,24 +37,30 @@ namespace DrumBot
                     newFrame.Notes.Where(
                         nn =>
                         nn.TrackColor == oldNote.TrackColor && nn.Rectangle.Y >= oldNote.Rectangle.Y);
+                //find the note closest to the previous position by euclidean distance
+                //if we don't have any velocity data yet then this will simply return the previous position
+                Rectangle predictedPosition = oldNote.PredictedPosition;
+                if (predictedPosition.Top > CapturedImage.LowerBorder)
+                {
+                    //the note will have left the screen
+                    //add the last frame prediction to play the note
+                    //TRIGGER HERE
+                    //TODO IMPLEMENT TRIGGER
+
+                }
+
                 //what to do if this gives us 0 results ?
                 int matchCount = possibleMatches.Count();
-                if(matchCount == 0)
+                if (matchCount == 0)
                 {
                     //went offscreen ?
                     continue;
                 }
 
-                //find the note closest to the previous position by euclidean distance
-                //if we don't have any velocity data yet then this will simply return the previous position
-                Rectangle predictedPosition =
-                    new Rectangle(oldNote.Rectangle.X + (int) Math.Round(oldNote.PerFrameVelocityX),
-                                  oldNote.Rectangle.Y + (int) Math.Round(oldNote.PerFrameVelocityY),
-                                  oldNote.Rectangle.Width, oldNote.Rectangle.Height);
 
                 //if we have a lot of notes with the right color to pick from we might as well assume that all notes
                 //have been classified correctly
-                if(possibleMatches.Count(pm => pm.Color == oldNote.Color) > 0)
+                if (possibleMatches.Count(pm => pm.Color == oldNote.Color) > 0)
                 {
                     possibleMatches = possibleMatches.Where(pm => pm.Color == oldNote.Color);
                 }
@@ -66,36 +72,24 @@ namespace DrumBot
                                   + Math.Pow(nn.Rectangle.Center().Y - predictedPosition.Center().Y, 2))).First();
                 bestMatch.PerFrameVelocityX = bestMatch.Rectangle.Center().X - oldNote.Rectangle.Center().X;
                 bestMatch.PerFrameVelocityY = bestMatch.Rectangle.Center().Y - oldNote.Rectangle.Center().Y;
-                
-                //the notes ALWAYS get larger as they drop to the bottom
-                if (bestMatch.Rectangle.Width < oldNote.Rectangle.Width || bestMatch.Rectangle.Height < oldNote.Rectangle.Height)
-                {
-                    bestMatch.Rectangle.Width = oldNote.Rectangle.Width;
-                    bestMatch.Rectangle.Height = oldNote.Rectangle.Height;
-                }
 
 
                 double xMismatch = bestMatch.Rectangle.Center().X - predictedPosition.Center().X;
                 double yMismatch = bestMatch.Rectangle.Center().Y - predictedPosition.Center().Y;
                 //Debug.WriteLine("XDif:{0} \nYDif:{1}", xMismatch, yMismatch);
-               
 
-                //this will probably cause problems
-                if(bestMatch.Color != oldNote.Color)
-                {
-                   bestMatch.Color = oldNote.Color;
-                }
+
                 //just to make sure we dont accidentially miscolor bass notes
-                double ratio = bestMatch.Rectangle.Width / (double)bestMatch.Rectangle.Height;
+                double ratio = bestMatch.Rectangle.Width/(double) bestMatch.Rectangle.Height;
                 if (ratio >= 4 && bestMatch.Color != NoteType.Orange)
                     bestMatch.Color = NoteType.Orange;
-                else if(ratio < 3.0)
+                else if (ratio < 3.0)
                     bestMatch.Color = bestMatch.TrackColor;
                 //if the ratio is between 3.0 and 4.0 we cannot be certain if it is a normal or a bass note so we keep the original guess
                 oldNote.MatchedToNewNote = true;
                 bestMatch.MatchedToOldNote = true;
                 //keep track of how many times we have seen this note
-                bestMatch.DetectedInFrames++;
+                bestMatch.DetectedInFrames += oldNote.DetectedInFrames;
                 updatedNotes.Add(bestMatch);
             }
 
