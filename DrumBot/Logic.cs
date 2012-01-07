@@ -36,18 +36,11 @@ namespace DrumBot
                 var possibleMatches =
                     newFrame.Notes.Where(
                         nn =>
-                        nn.TrackColor == oldNote.TrackColor && nn.Rectangle.Y >= oldNote.Rectangle.Y);
+                        nn.TrackColor == oldNote.TrackColor && nn.Rectangle.Y >= oldNote.Rectangle.Y
+                        && nn.MatchedToOldNote == false);
                 //find the note closest to the previous position by euclidean distance
                 //if we don't have any velocity data yet then this will simply return the previous position
                 Rectangle predictedPosition = oldNote.PredictedPosition;
-                if (predictedPosition.Top > CapturedImage.LowerBorder)
-                {
-                    //the note will have left the screen
-                    //add the last frame prediction to play the note
-                    //TRIGGER HERE
-                    //TODO IMPLEMENT TRIGGER
-
-                }
 
                 //what to do if this gives us 0 results ?
                 int matchCount = possibleMatches.Count();
@@ -76,6 +69,11 @@ namespace DrumBot
 
                 double xMismatch = bestMatch.Rectangle.Center().X - predictedPosition.Center().X;
                 double yMismatch = bestMatch.Rectangle.Center().Y - predictedPosition.Center().Y;
+                //made up numbers
+                if(bestMatch.Color != oldNote.Color && xMismatch < 2 && yMismatch < 3)
+                {
+                    bestMatch.Color = oldNote.Color;
+                }
                 //Debug.WriteLine("XDif:{0} \nYDif:{1}", xMismatch, yMismatch);
 
 
@@ -90,6 +88,7 @@ namespace DrumBot
                 bestMatch.MatchedToOldNote = true;
                 //keep track of how many times we have seen this note
                 bestMatch.DetectedInFrames += oldNote.DetectedInFrames;
+                bestMatch.FramesSinceLastDetection = 0;
                 updatedNotes.Add(bestMatch);
             }
 
@@ -97,6 +96,18 @@ namespace DrumBot
             foreach (Note note in newFrame.Notes.Where(n => n.MatchedToOldNote == false))
             {
                 updatedNotes.Add(note);
+            }
+            foreach(Note note in CurrentNotes.Where(n=>n.MatchedToNewNote == false && n.FramesSinceLastDetection < 10))
+            {
+                note.UpdateUsingPrediction();
+                if (note.AtTargetPoint())
+                {
+                    //TRIGGER THE BUTTON
+                }
+                else
+                {
+                    updatedNotes.Add(note);
+                }
             }
             CurrentNotes = updatedNotes;
         }

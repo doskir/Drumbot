@@ -61,7 +61,7 @@ namespace DrumBot
             {
                 NoteType color = trackColor;
                 double ratio = rectangle.Width/(double) rectangle.Height;
-                if (ratio >= 3.5)
+                if (ratio >= 3.70)
                     color = NoteType.Orange;
                 if (ratio < 1.0)
                 {
@@ -83,7 +83,7 @@ namespace DrumBot
             }
         }
 
-        public const int LowerBorder = 131 - 20;
+        public const int LowerBorder = 131 - 25;
         public const int UpperBorder = 25;
         private void DrawNotes(List<Note> notesOfASingleTrack,ref Image<Bgr,byte> track)
         {
@@ -131,7 +131,7 @@ namespace DrumBot
             {
 
                 Rectangle newRectangle = contours.BoundingRectangle;
-                if (newRectangle.Height < 5 || newRectangle.Width < 20 || newRectangle.Height / newRectangle.Width > 1)
+                if (newRectangle.Height < 10 || newRectangle.Width < 20 || newRectangle.Height/newRectangle.Width > 1)
                     continue;
                 //if (rectForImage.X < 0)
                 //    rectForImage.X = 0;
@@ -142,13 +142,39 @@ namespace DrumBot
                 double average = rectImage.GetAverage().Intensity;
                 Debug.WriteLine(average);
 
+                bool intersectionFound = false;
+                for (int i = 0; i < rectangles.Count; i++)
+                {
+                    Rectangle rectangle = rectangles[i];
+                    if (newRectangle.IntersectsWith(rectangle) || newRectangle.Contains(rectangle))
+                    {
+                        Rectangle combinedRectangle = new Rectangle(rectangle.X, rectangle.Y, rectangle.Width,
+                                                                    rectangle.Height);
+                        if (rectangle.X > newRectangle.X)
+                            combinedRectangle.X = newRectangle.X;
+                        if (rectangle.Y > newRectangle.Y)
+                        {
+                            combinedRectangle.Height += combinedRectangle.Y - newRectangle.Y;
+                            combinedRectangle.Y = newRectangle.Y;
+
+                        }
+                        if (rectangle.Right < newRectangle.Right)
+                            combinedRectangle.Width = newRectangle.Right - combinedRectangle.X;
+                        if (rectangle.Bottom < newRectangle.Bottom)
+                            combinedRectangle.Height = newRectangle.Bottom - combinedRectangle.Y;
+                        rectangles[i] = combinedRectangle;
+                        intersectionFound = true;
+                        break;
+
+                    }
+                }
                 //to prevent false detections
                 if (newRectangle.Width < 20 || newRectangle.Height < 5)
                     continue;
                 //to prevent cut off large notes from being detected as bass notes further on
                 if (newRectangle.Top >= LowerBorder || newRectangle.Bottom < UpperBorder)
                     continue;
-                //if (!intersectionFound)
+                if (!intersectionFound)
                     rectangles.Add(newRectangle);
             }
             return rectangles;

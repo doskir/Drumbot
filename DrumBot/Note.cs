@@ -37,6 +37,7 @@ namespace DrumBot
         public bool MatchedToNewNote;
         private double _perFrameVelocityX;
         private double _perFrameVelocityY;
+        public int FramesSinceLastDetection = 0;
         public double PerFrameVelocityX
         {
             get { return _perFrameVelocityX; }
@@ -45,6 +46,9 @@ namespace DrumBot
                 _lastPerFrameVelocityX = _perFrameVelocityX;
                 if (AvgVelocityX == 0)
                     AvgVelocityX = value;
+                //prevent any odd jumps from ruining our predictions
+                if (_lastPerFrameVelocityX > 0 && value > _lastPerFrameVelocityX * 1.3)
+                    value = _lastPerFrameVelocityX*1.1;
                 AvgVelocityX = (AvgVelocityX + value)/2;
                 _perFrameVelocityX = value;
             }
@@ -58,6 +62,9 @@ namespace DrumBot
                 _lastPerFrameVelocityY = _perFrameVelocityY;
                 if(AvgVelocityY == 0)
                     AvgVelocityY = value;
+                //prevent any odd jumps from ruining our predictions
+                if (_lastPerFrameVelocityY > 0 && value > _lastPerFrameVelocityY * 1.3)
+                    value = _lastPerFrameVelocityY * 1.1;
                 AvgVelocityY = (AvgVelocityY + value)/2;
                 _perFrameVelocityY = value;
             }
@@ -72,10 +79,11 @@ namespace DrumBot
         //velocity seems to multiply by about 1.2 each frame
         public Rectangle PredictedPosition
         {
-            get { 
+            get
+            {
                 Rectangle rectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width, Rectangle.Height);
-                rectangle.X += (int)Math.Round(PerFrameVelocityX*1.2);
-                rectangle.Y += (int)Math.Round(PerFrameVelocityY*1.2);
+                rectangle.X += (int) Math.Round(PerFrameVelocityX);
+                rectangle.Y += (int) Math.Round(PerFrameVelocityY);
                 return rectangle;
             }
         }
@@ -102,7 +110,7 @@ namespace DrumBot
                                                    +
                                                    (int)
                                                    Math.Round(PerFrameVelocityY*Math.Pow(1.1, framesWithCurrentVelocity));
-                    if (predictedPositionRectangle.Contains(TargetPoint))
+                    if (predictedPositionRectangle.Contains(TargetPoint) || predictedPositionRectangle.Top > TargetPoint.Y)
                         break;
 
                 }
@@ -119,7 +127,7 @@ namespace DrumBot
                                                               *Math.Pow(1.1, framesWithPreviousVelocity));
                     predictedPositionRectangle.Y = predictedPositionRectangle.Y
                                                    + (int)Math.Round(_lastPerFrameVelocityY * Math.Pow(1.1, framesWithPreviousVelocity));
-                    if (predictedPositionRectangle.Contains(TargetPoint))
+                    if (predictedPositionRectangle.Contains(TargetPoint) ||  predictedPositionRectangle.Top > TargetPoint.Y)
                         break;
                 }
                 predictedPositionRectangle = new Rectangle(Rectangle.X, Rectangle.Y, Rectangle.Width,
@@ -131,7 +139,7 @@ namespace DrumBot
                                                    + (int) Math.Round(AvgVelocityX*Math.Pow(1.1, framesWithAvgVelocity));
                     predictedPositionRectangle.Y = predictedPositionRectangle.Y
                                                    + (int) Math.Round(AvgVelocityY*Math.Pow(1.1, framesWithAvgVelocity));
-                    if (predictedPositionRectangle.Contains(TargetPoint))
+                    if (predictedPositionRectangle.Contains(TargetPoint) || predictedPositionRectangle.Top  > TargetPoint.Y)
                         break;
                 }
                 Debug.WriteLine("Cur:{0}\nPre:{1}\nAvg:{2}\nSeen:{3}\n", framesWithCurrentVelocity,
@@ -179,6 +187,17 @@ namespace DrumBot
         public override string ToString()
         {
             return Color.ToString() + " " + DistanceToTarget.ToString();
+        }
+        public void UpdateUsingPrediction()
+        {
+            Rectangle = PredictedPosition;
+            PerFrameVelocityX = PerFrameVelocityX*1.1;
+            PerFrameVelocityY = PerFrameVelocityY*1.1;
+            FramesSinceLastDetection++;
+        }
+        public bool AtTargetPoint()
+        {
+            return Rectangle.Contains(TargetPoint) || Rectangle.Top > TargetPoint.Y;
         }
     }
 }
