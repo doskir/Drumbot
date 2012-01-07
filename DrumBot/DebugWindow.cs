@@ -35,46 +35,101 @@ namespace DrumBot
 
         private CapturedImage firstImage;
         private CapturedImage secondImage;
+        private Logic logic = new Logic();
         private void button1_Click(object sender, EventArgs e)
         {
             ReloadTracks();
             RefreshPictureBoxes();
+            imageId = 477;
         }
         private void ReloadTracks()
         {
+            logic.CurrentNotes.Clear();
             ImageProcessing processing = new ImageProcessing();
             if (firstImage != null)
                 firstImage.Dispose();
             if (secondImage != null)
                 secondImage.Dispose();
 
-            firstImage = new CapturedImage(new Image<Bgr, byte>("screenshot.bmp"), DateTime.Now);
-            secondImage = new CapturedImage(new Image<Bgr, byte>("screenshot2.bmp"),
-                                            firstImage.CaptureTime.AddMilliseconds(40));
+            firstImage = new CapturedImage(new Image<Bgr, byte>(@"D:\drumbot\panic attack partial\" + "000475.bmp"), DateTime.Now);
+            secondImage = new CapturedImage(new Image<Bgr, byte>(@"D:\drumbot\panic attack partial\" + "000476.bmp"),
+                                firstImage.CaptureTime.AddMilliseconds(40));
+            MostRecentImage = firstImage;
+            logic.UpdateAndPredictNotes(MostRecentImage);
+            MostRecentImage = secondImage;
+            logic.UpdateAndPredictNotes(MostRecentImage);
+            DrawBigPicture();
+
+
+
+
 
         }
-        private void ApplyThresholding()
-        {
-            int redThreshold = (int)thresholdRedNumericUpDown.Value;
-            int greenThreshold = (int)thresholdGreenNumericUpDown.Value;
-            int blueThreshold = (int) thresholdRedNumericUpDown.Value;
-            int redMaximum = (int)maximumRedNumericUpDown.Value;
-            int greenMaximum = (int)maximumGreenNumericUpDown.Value;
-            int blueMaximum = (int)maximumRedNumericUpDown.Value;
-            //filter out the background
-            firstImage.RedTrack = firstImage.RedTrack.ThresholdToZero(new Bgr(blueThreshold, greenThreshold, redThreshold));
-            //track = track.ThresholdTrunc(new Bgr(blueMaximum, greenMaximum, redMaximum));
-            //track = track.ThresholdToZero(new Bgr(blueThreshold, greenThreshold, redThreshold));
-            //track = track.ThresholdBinary(new Bgr(blueThreshold, greenThreshold, redThreshold),
-                                                    //new Bgr(blueMaximum, greenMaximum, redMaximum));
-            secondImage.RedTrack = secondImage.RedTrack.ThresholdTrunc(new Bgr(blueMaximum, greenMaximum, redMaximum));
-            secondImage.RedTrack = secondImage.RedTrack.ThresholdToZero(new Bgr(blueThreshold, greenThreshold, redThreshold));
 
-            //track2 = track2.ThresholdBinary(new Bgr(blueThreshold, greenThreshold, redThreshold),
-                                       //new Bgr(blueMaximum, greenMaximum, redMaximum));
-            //RGB
-            //255,90,255
-            //0,255,0
+        public CapturedImage MostRecentImage;
+        private Image<Bgr, byte> CurrentDisplayedImage;
+        private void DrawBigPicture()
+        {
+            MCvFont font = new MCvFont(Emgu.CV.CvEnum.FONT.CV_FONT_HERSHEY_PLAIN, 1, 1);
+            font.thickness = 2;
+            Image<Bgr, byte> newImage = MostRecentImage.Image.Clone();
+            foreach (Note note in logic.CurrentNotes.Where(n=>n.DetectedInFrames > 1))
+            {
+                Point playAreaOffset = new Point(218, 262);
+                Point trackOffset;
+                switch (note.TrackColor)
+                {
+                    case NoteType.Red:
+                        trackOffset = new Point(0, 0);
+                        break;
+                    case NoteType.Yellow:
+                        trackOffset = new Point(66, 0);
+                        break;
+                    case NoteType.Blue:
+                        trackOffset = new Point(134, 0);
+                        break;
+                    case NoteType.Green:
+                        trackOffset = new Point(176, 0);
+                        break;
+                    default:
+                        trackOffset = new Point(0, 0);
+                        break;
+                }
+                Rectangle drawRectangle = new Rectangle(playAreaOffset.X + trackOffset.X + note.Rectangle.X,
+                                                        playAreaOffset.Y + trackOffset.Y + note.Rectangle.Y,
+                                                        note.Rectangle.Width, note.Rectangle.Height);
+                Bgr color = new Bgr(0, 0, 0);
+                switch (note.Color)
+                {
+                    case NoteType.Red:
+                        color = new Bgr(0, 0, 255);
+                        break;
+                    case NoteType.Yellow:
+                        color = new Bgr(0, 255, 255);
+                        break;
+                    case NoteType.Blue:
+                        color = new Bgr(255, 0, 0);
+                        break;
+                    case NoteType.Green:
+                        color = new Bgr(0, 255, 0);
+                        break;
+                    case NoteType.Orange:
+                        color = new Bgr(255, 255, 255);
+                        break;
+                }
+                newImage.Draw(drawRectangle, color, 2);
+                newImage.Draw(note.FramesUntilHit.ToString("##.##"), ref font,
+                              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(0,0,0));
+                //newImage.Draw("X" + note.PerFrameVelocityX + ";Y" + note.PerFrameVelocityY, ref font,
+                //              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(0,0,0));
+                //newImage.Draw(((int) note.DistanceToTarget).ToString(), ref font,
+                //              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(128, 128, 128));
+            }
+
+            if (CurrentDisplayedImage != null)
+                CurrentDisplayedImage.Dispose();
+            CurrentDisplayedImage = newImage;
+            pictureBox1.Image = CurrentDisplayedImage.Bitmap;
         }
         private Image<Gray,byte> ExtractAndDrawFeatures(Image<Bgr,byte> track)
         {
@@ -131,7 +186,7 @@ namespace DrumBot
             */
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void redTrack1PictureBox_Click(object sender, EventArgs e)
         {
             MouseEventArgs me = (MouseEventArgs) e;
             if (me.X < redTrack1PictureBox.Image.Width && me.Y < redTrack1PictureBox.Image.Height)
@@ -142,7 +197,7 @@ namespace DrumBot
             }
         }
 
-        private void pictureBox2_Click(object sender, EventArgs e)
+        private void redTrack2PictureBox_Click(object sender, EventArgs e)
         {
             MouseEventArgs me = (MouseEventArgs)e;
             if (me.X < redTrack2PictureBox.Image.Width && me.Y < redTrack2PictureBox.Image.Height)
@@ -151,6 +206,22 @@ namespace DrumBot
                 Debug.WriteLine("{0},{1}", me.X, me.Y);
                 Debug.WriteLine("{0};{1};{2}", pixel.R, pixel.G, pixel.B);
             }
+        }
+
+        private int imageId = 477;
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            secondImage = new CapturedImage(new Image<Bgr, byte>(@"D:\drumbot\panic attack partial\" + imageId.ToString().PadLeft(6, '0') + ".bmp"), DateTime.Now);
+            MostRecentImage = secondImage;
+            logic.UpdateAndPredictNotes(MostRecentImage);
+            DrawBigPicture();
+            RefreshPictureBoxes();
+            //just to get the debug console output
+            //foreach(Note n in logic.CurrentNotes)
+            //{
+            //    double d = n.FramesUntilHit;
+            //}
+            imageId++;
         }
     }
 }

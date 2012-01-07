@@ -26,7 +26,7 @@ namespace DrumBot
             captureThread.Name = "captureThread";
             captureThread.Start();
             liveViewTimer = new Timer();
-            liveViewTimer.Interval = 10;
+            liveViewTimer.Interval = 20;
             liveViewTimer.Tick += new EventHandler(liveViewTimer_Tick);
             liveViewTimer.Start();
         }
