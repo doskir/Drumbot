@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
-using Emgu.CV.UI;
 
 namespace DrumBot
 {
-    public class CapturedImage
+    public class CapturedImage : IDisposable
     {
         public Image<Bgr, Byte> Image;
         public DateTime CaptureTime;
@@ -37,14 +34,14 @@ namespace DrumBot
             BlueTrack = ExtractBlueTrack(playArea);
             GreenTrack = ExtractGreenTrack(playArea);
 
-            List<Rectangle> RedTrackRectangles = ExtractFeatureRectangles(RedTrack);
-            List<Rectangle> YellowTrackRectangles = ExtractFeatureRectangles(YellowTrack);
-            List<Rectangle> BlueTrackRectangles = ExtractFeatureRectangles(BlueTrack);
-            List<Rectangle> GreenTrackRectangles = ExtractFeatureRectangles(GreenTrack);
-            AddNotesFromRectangles(RedTrackRectangles, NoteType.Red);
-            AddNotesFromRectangles(YellowTrackRectangles, NoteType.Yellow);
-            AddNotesFromRectangles(BlueTrackRectangles, NoteType.Blue);
-            AddNotesFromRectangles(GreenTrackRectangles, NoteType.Green);
+            List<Rectangle> redTrackRectangles = ExtractFeatureRectangles(RedTrack);
+            List<Rectangle> yellowTrackRectangles = ExtractFeatureRectangles(YellowTrack);
+            List<Rectangle> blueTrackRectangles = ExtractFeatureRectangles(BlueTrack);
+            List<Rectangle> greenTrackRectangles = ExtractFeatureRectangles(GreenTrack);
+            AddNotesFromRectangles(redTrackRectangles, NoteType.Red);
+            AddNotesFromRectangles(yellowTrackRectangles, NoteType.Yellow);
+            AddNotesFromRectangles(blueTrackRectangles, NoteType.Blue);
+            AddNotesFromRectangles(greenTrackRectangles, NoteType.Green);
 
             DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Red).ToList(), ref RedTrack);
             DrawNotes(Notes.Where(n => n.TrackColor == NoteType.Yellow).ToList(), ref YellowTrack);

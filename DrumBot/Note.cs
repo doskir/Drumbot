@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 
 namespace DrumBot
 {
@@ -37,7 +34,7 @@ namespace DrumBot
         public bool MatchedToNewNote;
         private double _perFrameVelocityX;
         private double _perFrameVelocityY;
-        public int FramesSinceLastDetection = 0;
+        public int FramesSinceLastDetection;
         public double PerFrameVelocityX
         {
             get { return _perFrameVelocityX; }

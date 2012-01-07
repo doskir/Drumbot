@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 
 namespace DrumBot
 {
@@ -33,10 +31,11 @@ namespace DrumBot
                 //the note has to be in the same track and has to be below the previous position
                 //it does NOT have to be detect as the same color because our detection is not perfect
                 //we have to account for that and then give it the most likely color
+                Note note = oldNote;
                 var possibleMatches =
                     newFrame.Notes.Where(
                         nn =>
-                        nn.TrackColor == oldNote.TrackColor && nn.Rectangle.Y >= oldNote.Rectangle.Y
+                        nn.TrackColor == note.TrackColor && nn.Rectangle.Y >= note.Rectangle.Y
                         && nn.MatchedToOldNote == false);
                 //find the note closest to the previous position by euclidean distance
                 //if we don't have any velocity data yet then this will simply return the previous position
@@ -53,10 +52,9 @@ namespace DrumBot
 
                 //if we have a lot of notes with the right color to pick from we might as well assume that all notes
                 //have been classified correctly
-                if (possibleMatches.Count(pm => pm.Color == oldNote.Color) > 0)
-                {
-                    possibleMatches = possibleMatches.Where(pm => pm.Color == oldNote.Color);
-                }
+                var colorMatches = possibleMatches.Where(pm => pm.Color == oldNote.Color);
+                if(colorMatches.Count() > 0)
+                    possibleMatches = colorMatches;
                 //find the note closest to the predicted positions CENTER by euclidean distance
                 var bestMatch =
                     possibleMatches.OrderBy(
@@ -93,10 +91,7 @@ namespace DrumBot
             }
 
             //add the new notes
-            foreach (Note note in newFrame.Notes.Where(n => n.MatchedToOldNote == false))
-            {
-                updatedNotes.Add(note);
-            }
+            updatedNotes.AddRange(newFrame.Notes.Where(n => n.MatchedToOldNote == false));
             foreach(Note note in CurrentNotes.Where(n=>n.MatchedToNewNote == false && n.FramesSinceLastDetection < 10))
             {
                 note.UpdateUsingPrediction();
