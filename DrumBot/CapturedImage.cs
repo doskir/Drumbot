@@ -21,9 +21,9 @@ namespace DrumBot
 
         public CapturedImage(Image<Bgr, Byte> image, DateTime captureTime)
         {
+            DateTime startTime = DateTime.Now;
             Image = image;
             CaptureTime = captureTime;
-            DateTime startTime = DateTime.Now;
             Image<Bgr, Byte> playArea = image.Copy(new Rectangle(218, 262, 272, 131));
 
             playArea = SmoothImage(playArea);
@@ -51,16 +51,33 @@ namespace DrumBot
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
-            Debug.WriteLine(elapsedTime.TotalMilliseconds);
+            Debug.WriteLine("Processing image took {0} ms.",elapsedTime.TotalMilliseconds);
         }
         private void AddNotesFromRectangles(List<Rectangle> rectangles,NoteType trackColor)
         {
-            foreach(Rectangle rectangle in rectangles)
+            foreach (Rectangle rectangle in rectangles)
             {
                 NoteType color = trackColor;
-                if (rectangle.Width / (double)rectangle.Height >= 4.0f)
+                double ratio = rectangle.Width/(double) rectangle.Height;
+                if (ratio >= 4.0)
                     color = NoteType.Orange;
-                Notes.Add(new Note(rectangle, color,trackColor));
+                if (ratio < 2.0)
+                {
+                    //split it up
+                    int pieces = (int) Math.Round(3.5/ratio);
+                    for (int i = 0; i < pieces; i++)
+                    {
+                        Rectangle newRect = new Rectangle(rectangle.X, rectangle.Y + (i*rectangle.Height/pieces),
+                                                          rectangle.Width, rectangle.Height/pieces);
+                        Notes.Add(new Note(newRect, color, trackColor));
+                        Debug.WriteLine("X:{0} Y:{1} W:{2} H:{3}", newRect.X, newRect.Y, newRect.Width, newRect.Height);
+                    }
+                }
+                else
+                {
+                    Notes.Add(new Note(rectangle, color, trackColor));
+                }
+                Debug.WriteLine("Ratio: {0}", ratio);
             }
         }
         private void DrawNotes(List<Note> notesOfASingleTrack,ref Image<Bgr,byte> track)
