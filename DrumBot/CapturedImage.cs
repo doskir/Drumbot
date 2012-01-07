@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using Emgu.CV.UI;
 
 namespace DrumBot
 {
-    class CapturedImage
+    public class CapturedImage
     {
         public Image<Bgr, Byte> Image;
         public DateTime CaptureTime;
@@ -27,7 +29,7 @@ namespace DrumBot
             Image<Bgr, Byte> playArea = image.Copy(new Rectangle(218, 262, 272, 131));
 
             playArea = SmoothImage(playArea);
-            playArea = playArea.ThresholdBinary(new Bgr(120, 100, 100), new Bgr(255, 255, 255));
+            playArea = playArea.ThresholdBinary(new Bgr(120, 100, 110), new Bgr(255, 255, 255));
             playArea = SmoothImage(playArea);
 
             RedTrack = ExtractRedTrack(playArea);
@@ -59,7 +61,7 @@ namespace DrumBot
             {
                 NoteType color = trackColor;
                 double ratio = rectangle.Width/(double) rectangle.Height;
-                if (ratio >= 4.0)
+                if (ratio >= 3.5)
                     color = NoteType.Orange;
                 if (ratio < 2.0)
                 {
@@ -77,7 +79,7 @@ namespace DrumBot
                 {
                     Notes.Add(new Note(rectangle, color, trackColor));
                 }
-                Debug.WriteLine("Ratio: {0}", ratio);
+                //Debug.WriteLine("Ratio: {0} Color:{1}", ratio, color.ToString());
             }
         }
         private void DrawNotes(List<Note> notesOfASingleTrack,ref Image<Bgr,byte> track)
@@ -106,22 +108,39 @@ namespace DrumBot
                         break;
                 }
                 track.Draw(note.Rectangle, color, 2);
+                //track.Draw("X" + note.PerFrameVelocityX + ";Y" + note.PerFrameVelocityY, ref font,
+                //           new Point(note.Rectangle.Left, note.Rectangle.Bottom), new Bgr(128, 128, 128));
+
                 track.Draw(((int)note.DistanceToTarget).ToString(), ref font,
-                           new Point(note.Rectangle.Left,note.Rectangle.Bottom), new Bgr(128, 128, 128));
+                          new Point(note.Rectangle.Left,note.Rectangle.Bottom), new Bgr(128, 128, 128));
             }
         }
         private List<Rectangle> ExtractFeatureRectangles(Image<Bgr, byte> track)
         {
             List<Rectangle> rectangles = new List<Rectangle>();
             Image<Gray, byte> grayScaleImage = new Image<Gray, byte>(track.Bitmap);
-            var cannyEdges = grayScaleImage.Canny(new Gray(200), new Gray(20));
+            var cannyEdges = grayScaleImage.Canny(new Gray(400), new Gray(800));
             for (Contour<Point> contours =
                      cannyEdges.FindContours(Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
                                              Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_EXTERNAL);
                  contours != null;
                  contours = contours.HNext)
             {
-                Rectangle newRectangle = contours.GetMinAreaRect().MinAreaRect();
+
+                Rectangle newRectangle = contours.BoundingRectangle;
+                if (newRectangle.Height < 5 || newRectangle.Width < 20 || newRectangle.Height / newRectangle.Width > 1)
+                    continue;
+                //if (rectForImage.X < 0)
+                //    rectForImage.X = 0;
+                //if (rectForImage.Y < 0)
+                //    rectForImage.Y = 0;
+                var rectImage = grayScaleImage.Copy(newRectangle);
+                rectImage.ThresholdBinary(new Gray(1), new Gray(255));
+                double average = rectImage.GetAverage().Intensity;
+                Debug.WriteLine(average);
+
+
+
                 bool intersectionFound = false;
                 for (int i = 0; i < rectangles.Count; i++)
                 {
@@ -133,7 +152,11 @@ namespace DrumBot
                         break;
                     }
                 }
-                if (newRectangle.Width < 30 || newRectangle.Height < 5)
+                //to prevent false detections
+                if (newRectangle.Width < 20 || newRectangle.Height < 5)
+                    continue;
+                //to prevent cut off large notes from being detected as bass notes further on
+                if (newRectangle.Top >= track.Bitmap.Height - 20 || newRectangle.Bottom < 25)
                     continue;
                 if (!intersectionFound)
                     rectangles.Add(newRectangle);

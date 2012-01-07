@@ -63,6 +63,7 @@ dist = 83,678
 distcovered = 14.067
 triggerInFrames = 5.9485
 actualTriggerIn = 6
+//CUT OFF POINT
 
 862,610
 dist = 69,376
