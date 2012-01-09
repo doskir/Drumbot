@@ -14,9 +14,12 @@ namespace DrumBot
 {
     public partial class DebugWindow : Form
     {
+        private Teensy _teensy;
         public DebugWindow()
         {
             InitializeComponent();
+            _teensy = new Teensy("COM3");
+            logic = new Logic(_teensy);
             ReloadTracks();
             RefreshPictureBoxes();
         }
@@ -35,7 +38,7 @@ namespace DrumBot
 
         private CapturedImage firstImage;
         private CapturedImage secondImage;
-        private Logic logic = new Logic();
+        private Logic logic;
         private void button1_Click(object sender, EventArgs e)
         {
             ReloadTracks();

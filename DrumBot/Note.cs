@@ -192,7 +192,7 @@ namespace DrumBot
             PerFrameVelocityY = PerFrameVelocityY*1.1;
             FramesSinceLastDetection++;
         }
-        public bool AtTargetPoint()
+        public bool AtTargetPoint(Rectangle rect)
         {
             return Rectangle.Contains(TargetPoint) || Rectangle.Top > TargetPoint.Y;
         }

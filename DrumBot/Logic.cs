@@ -15,9 +15,13 @@ namespace DrumBot
     }
     internal class Logic
     {
-
+        private Teensy _teensy;
+        public Logic(Teensy teensy)
+        {
+            _teensy = teensy;
+        }
         public List<Note> CurrentNotes = new List<Note>();
-
+        private int _framesSinceLastOrangeNote = 1000;
         public void UpdateAndPredictNotes(CapturedImage newFrame)
         {
             List<Note> updatedNotes = new List<Note>();
@@ -92,18 +96,31 @@ namespace DrumBot
 
             //add the new notes
             updatedNotes.AddRange(newFrame.Notes.Where(n => n.MatchedToOldNote == false));
+            bool orangeNoteTriggered = false;
             foreach(Note note in CurrentNotes.Where(n=>n.MatchedToNewNote == false && n.FramesSinceLastDetection < 10))
             {
+                //get the predicted position in the CURRENT frame
                 note.UpdateUsingPrediction();
-                if (note.AtTargetPoint())
+                //check if the predicted position in the next frame is at the target
+                if (note.AtTargetPoint(note.PredictedPosition))
                 {
-                    //TRIGGER THE BUTTON
+                    if (note.Color == NoteType.Orange)
+                    {
+                        if (orangeNoteTriggered || _framesSinceLastOrangeNote < 2)
+                            continue;
+                        orangeNoteTriggered = true;
+                    }
+                    _teensy.HitNote(note.Color);
                 }
                 else
                 {
                     updatedNotes.Add(note);
                 }
             }
+            if (orangeNoteTriggered)
+                _framesSinceLastOrangeNote = 0;
+            else
+                _framesSinceLastOrangeNote++;
             CurrentNotes = updatedNotes;
         }
 
