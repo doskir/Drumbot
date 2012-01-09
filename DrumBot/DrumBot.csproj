@@ -69,7 +69,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="ImageProcessing.cs" />
     <Compile Include="Logic.cs" />
     <Compile Include="MMTimer.cs" />
     <Compile Include="Note.cs" />

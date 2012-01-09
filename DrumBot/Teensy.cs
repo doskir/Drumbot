@@ -9,15 +9,19 @@ namespace DrumBot
     class Teensy : IDisposable
     {
         private SerialPort port;
+        public bool WriteAllowed;
         public Teensy(string serialPortName)
         {
             port = new SerialPort(serialPortName, 9600);
             port.Open();
+            WriteAllowed = true;
         }
         public void SendString(string s)
         {
-            port.Write(s);
+            if (WriteAllowed)
+                port.Write(s);
         }
+
         public void HitNote(NoteType color)
         {
             SendString(color.ToString().ToUpper()[0].ToString());

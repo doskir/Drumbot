@@ -3,6 +3,7 @@ const int yellowPin = 10;
 const int bluePin =  12;
 const int greenPin =  14;
 const int orangePin = 15;
+const int statusLedPin = 11;
 
 
 void setup()   {                
@@ -12,11 +13,15 @@ void setup()   {
   pinMode(bluePin,OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(orangePin, OUTPUT);
+  pinMode(statusLedPin,OUTPUT);
   Serial.begin(9600);
+  //light up the led to show its ready
+  digitalWrite(statusLedPin,HIGH);
 }
 
 void loop()                     
 {
+  int orangeNote = 0;
   while(Serial.available() > 0)
   {
     int incomingByte = Serial.read();
@@ -29,14 +34,19 @@ void loop()
     else if (incomingByte == 'G')
       digitalWrite(greenPin,HIGH);
     else if (incomingByte == 'O')
+    {
       digitalWrite(orangePin,HIGH);
+      orangeNote = 1;
+    }
   }
-  delay(10);  
+  delay(5);
+  if(orangeNote)
+    delay(10);
   digitalWrite(redPin, LOW);
   digitalWrite(yellowPin,LOW);
   digitalWrite(bluePin,LOW);
   digitalWrite(greenPin, LOW);
   digitalWrite(orangePin,LOW);
-  delay(10);
+  delay(5);
 }
 

@@ -48,7 +48,6 @@ namespace DrumBot
         private void ReloadTracks()
         {
             logic.CurrentNotes.Clear();
-            ImageProcessing processing = new ImageProcessing();
             if (firstImage != null)
                 firstImage.Dispose();
             if (secondImage != null)
@@ -169,7 +168,7 @@ namespace DrumBot
                 outputImage.Draw(rectangle, new Gray(255), 1);
             }
             TimeSpan elapsedTime = DateTime.Now - startTime;
-            Debug.WriteLine("Contour: {0} ms.", elapsedTime.TotalMilliseconds);
+            //Debug.WriteLine("Contour: {0} ms.", elapsedTime.TotalMilliseconds);
             return outputImage;
         }
         private void button2_Click(object sender, EventArgs e)
@@ -195,8 +194,8 @@ namespace DrumBot
             if (me.X < redTrack1PictureBox.Image.Width && me.Y < redTrack1PictureBox.Image.Height)
             {
                 Color pixel = firstImage.RedTrack.Bitmap.GetPixel(me.X, me.Y);
-                Debug.WriteLine("{0},{1}", me.X, me.Y);
-                Debug.WriteLine("{0};{1};{2}", pixel.R, pixel.G, pixel.B);
+               // Debug.WriteLine("{0},{1}", me.X, me.Y);
+                //Debug.WriteLine("{0};{1};{2}", pixel.R, pixel.G, pixel.B);
             }
         }
 
@@ -206,8 +205,8 @@ namespace DrumBot
             if (me.X < redTrack2PictureBox.Image.Width && me.Y < redTrack2PictureBox.Image.Height)
             {
                 Color pixel = secondImage.RedTrack.Bitmap.GetPixel(me.X, me.Y);
-                Debug.WriteLine("{0},{1}", me.X, me.Y);
-                Debug.WriteLine("{0};{1};{2}", pixel.R, pixel.G, pixel.B);
+                //Debug.WriteLine("{0},{1}", me.X, me.Y);
+                //Debug.WriteLine("{0};{1};{2}", pixel.R, pixel.G, pixel.B);
             }
         }
 

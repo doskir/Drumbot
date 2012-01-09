@@ -19,12 +19,16 @@ namespace DrumBot
         private CaptureVideo cv = new CaptureVideo();
         private Thread captureThread;
         private Timer liveViewTimer;
+        private Teensy _teensy;
+        private Logic _logic;
         public Form1()
         {
             InitializeComponent();
-            captureThread = new Thread(new ThreadStart(cv.StartCapturing));
+            _teensy = new Teensy("COM3");
+            _logic = new Logic(_teensy);
+            captureThread = new Thread(new ParameterizedThreadStart(cv.StartCapturing));
             captureThread.Name = "captureThread";
-            captureThread.Start();
+            captureThread.Start(_logic);
             liveViewTimer = new Timer();
             liveViewTimer.Interval = 20;
             liveViewTimer.Tick += new EventHandler(liveViewTimer_Tick);
@@ -35,7 +39,15 @@ namespace DrumBot
         {
             if (cv.globFrameCount >= 1)
             {
-                liveViewPictureBox.Image = cv.MostRecentImage.Bitmap;
+                //i have no idea whats wrong so lets just ignore the problem for now
+                try
+                {               
+                    liveViewPictureBox.Image = cv.CurrentDisplayedImage.Bitmap;
+                }
+                catch (Exception)
+                {
+                }
+
             }
             TimeSpan elapsedTime = DateTime.Now - cv.globCaptureStart;
             double fps = (cv.globFrameCount / elapsedTime.TotalMilliseconds) * 1000;
@@ -57,7 +69,7 @@ namespace DrumBot
 
         private void button2_Click(object sender, EventArgs e)
         {
-
+            _teensy.WriteAllowed = !_teensy.WriteAllowed;
         }
     }
 }

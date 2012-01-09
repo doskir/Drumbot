@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -31,10 +33,6 @@ namespace DrumBot
                     if (globCaptureStart == DateTime.MinValue)
                         globCaptureStart = DateTime.Now;
                     CapturedImage image = ImageQueue.Peek();
-                    if(image.Image == MostRecentImage)
-                    {
-                        break;
-                    }
                     if (Recording)
                     {
                         image.Save("D:\\captures\\" + frameCount.ToString().PadLeft(5, '0') + ".bmp");
@@ -47,10 +45,10 @@ namespace DrumBot
             }
         }
 
-        public Image<Bgr, Byte> MostRecentImage;
-
-        public void StartCapturing()
+        private Logic _logic;
+        public void StartCapturing(object logic)
         {
+            _logic = (Logic)logic;
             int fps = 25;
 
             writerThread = new Thread(ImageWriter);
@@ -66,19 +64,84 @@ namespace DrumBot
             captureTimer.Start((uint) (1000/fps), true);
             //now capturing
         }
+        public CapturedImage MostRecentImage;
+        public Image<Bgr, byte> CurrentDisplayedImage;
+        private void DrawBigPicture()
+        {
+            MCvFont font = new MCvFont(Emgu.CV.CvEnum.FONT.CV_FONT_HERSHEY_PLAIN, 1, 1);
+            font.thickness = 2;
+            Image<Bgr, byte> newImage = MostRecentImage.Image.Clone();
+            foreach (Note note in _logic.CurrentNotes.Where(n => n.DetectedInFrames > 1))
+            {
+                Point playAreaOffset = new Point(218, 262);
+                Point trackOffset;
+                switch (note.TrackColor)
+                {
+                    case NoteType.Red:
+                        trackOffset = new Point(0, 0);
+                        break;
+                    case NoteType.Yellow:
+                        trackOffset = new Point(66, 0);
+                        break;
+                    case NoteType.Blue:
+                        trackOffset = new Point(134, 0);
+                        break;
+                    case NoteType.Green:
+                        trackOffset = new Point(176, 0);
+                        break;
+                    default:
+                        trackOffset = new Point(0, 0);
+                        break;
+                }
+                Rectangle drawRectangle = new Rectangle(playAreaOffset.X + trackOffset.X + note.Rectangle.X,
+                                                        playAreaOffset.Y + trackOffset.Y + note.Rectangle.Y,
+                                                        note.Rectangle.Width, note.Rectangle.Height);
+                Bgr color = new Bgr(0, 0, 0);
+                switch (note.Color)
+                {
+                    case NoteType.Red:
+                        color = new Bgr(0, 0, 255);
+                        break;
+                    case NoteType.Yellow:
+                        color = new Bgr(0, 255, 255);
+                        break;
+                    case NoteType.Blue:
+                        color = new Bgr(255, 0, 0);
+                        break;
+                    case NoteType.Green:
+                        color = new Bgr(0, 255, 0);
+                        break;
+                    case NoteType.Orange:
+                        color = new Bgr(255, 255, 255);
+                        break;
+                }
+                newImage.Draw(drawRectangle, color, 2);
+                newImage.Draw(note.FramesUntilHit.ToString("##.##"), ref font,
+                              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(0, 0, 0));
+                //newImage.Draw("X" + note.PerFrameVelocityX + ";Y" + note.PerFrameVelocityY, ref font,
+                //              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(0,0,0));
+                //newImage.Draw(((int) note.DistanceToTarget).ToString(), ref font,
+                //              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(128, 128, 128));
+            }
 
+            if (CurrentDisplayedImage != null)
+                CurrentDisplayedImage.Dispose();
+            CurrentDisplayedImage = newImage;
+        }
         void captureTimer_Timer(object sender, EventArgs e)
         {
             DateTime captureTime = DateTime.Now;
             Image<Bgr, Byte> image = globCapture.QueryFrame();
-            MostRecentImage = image;
             CapturedImage capturedImage = new CapturedImage(image, captureTime);
+            MostRecentImage = capturedImage;
+            _logic.UpdateAndPredictNotes(capturedImage);
+            DrawBigPicture();
             ImageQueue.Enqueue(capturedImage);
             globFrameCount++;
             TimeSpan timeElapsed = DateTime.Now - captureTime;
             if (timeElapsed.TotalMilliseconds > 45)
             {
-                System.Diagnostics.Debug.WriteLine("WARNING: Capture took {0} ms.", timeElapsed.TotalMilliseconds);
+                Debug.WriteLine("WARNING: Capture took {0} ms.", timeElapsed.TotalMilliseconds);
             }
         }
         public void StopCapturing()

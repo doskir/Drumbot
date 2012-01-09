@@ -17,7 +17,7 @@ namespace DrumBot
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             System.Diagnostics.Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.RealTime;
-            Application.Run(new DebugWindow());
+            Application.Run(new Form1());
         }
     }
 }

@@ -56,6 +56,11 @@ namespace DrumBot
             get { return _perFrameVelocityY; }
             set
             {
+                //the note cannot possibly go up
+                if (value < 0)
+                {
+                    return;
+                }
                 _lastPerFrameVelocityY = _perFrameVelocityY;
                 if(AvgVelocityY == 0)
                     AvgVelocityY = value;
@@ -139,9 +144,9 @@ namespace DrumBot
                     if (predictedPositionRectangle.Contains(TargetPoint) || predictedPositionRectangle.Top  > TargetPoint.Y)
                         break;
                 }
-                Debug.WriteLine("Cur:{0}\nPre:{1}\nAvg:{2}\nSeen:{3}\n", framesWithCurrentVelocity,
-                 framesWithPreviousVelocity,
-                 framesWithAvgVelocity, DetectedInFrames);
+                //Debug.WriteLine("Cur:{0}\nPre:{1}\nAvg:{2}\nSeen:{3}\n", framesWithCurrentVelocity,
+                 //framesWithPreviousVelocity,
+                // framesWithAvgVelocity, DetectedInFrames);
                 if (framesWithAvgVelocity < MaxFrames)
                     return framesWithAvgVelocity;
                 if (framesWithCurrentVelocity < MaxFrames)

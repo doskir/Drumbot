@@ -50,7 +50,7 @@ namespace DrumBot
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
 
-            Debug.WriteLine("Processing image took {0} ms.",elapsedTime.TotalMilliseconds);
+            //Debug.WriteLine("Processing image took {0} ms.",elapsedTime.TotalMilliseconds);
         }
         private void AddNotesFromRectangles(List<Rectangle> rectangles,NoteType trackColor)
         {
@@ -69,7 +69,7 @@ namespace DrumBot
                         Rectangle newRect = new Rectangle(rectangle.X, rectangle.Y + (i*rectangle.Height/pieces),
                                                           rectangle.Width, rectangle.Height/pieces);
                         Notes.Add(new Note(newRect, color, trackColor));
-                        Debug.WriteLine("X:{0} Y:{1} W:{2} H:{3}", newRect.X, newRect.Y, newRect.Width, newRect.Height);
+                        //Debug.WriteLine("X:{0} Y:{1} W:{2} H:{3}", newRect.X, newRect.Y, newRect.Width, newRect.Height);
                     }
                 }
                 else
@@ -130,14 +130,6 @@ namespace DrumBot
                 Rectangle newRectangle = contours.BoundingRectangle;
                 if (newRectangle.Height < 10 || newRectangle.Width < 20 || newRectangle.Height/newRectangle.Width > 1)
                     continue;
-                //if (rectForImage.X < 0)
-                //    rectForImage.X = 0;
-                //if (rectForImage.Y < 0)
-                //    rectForImage.Y = 0;
-                var rectImage = grayScaleImage.Copy(newRectangle);
-                rectImage.ThresholdBinary(new Gray(1), new Gray(255));
-                double average = rectImage.GetAverage().Intensity;
-                Debug.WriteLine(average);
 
                 bool intersectionFound = false;
                 for (int i = 0; i < rectangles.Count; i++)
