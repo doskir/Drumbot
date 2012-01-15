@@ -6,26 +6,47 @@ using System.Text;
 
 namespace DrumBot
 {
-    class Teensy : IDisposable
+    class Teensy : IDisposable,IDrumHardware
     {
         private SerialPort port;
-        public bool WriteAllowed;
+        private bool _writeAllowed;
+        public bool WriteAllowed
+        {
+            get { return _writeAllowed; }
+            set { _writeAllowed = value; }
+        }
+
         public Teensy(string serialPortName)
         {
-            port = new SerialPort(serialPortName, 9600);
-            port.Open();
-            WriteAllowed = true;
+            try
+            {
+                port = new SerialPort(serialPortName, 9600);
+                Open();
+                WriteAllowed = true;
+            }
+            catch
+            {
+                
+            }
         }
-        public void SendString(string s)
+        private void SendString(string s)
         {
             if (WriteAllowed)
                 port.Write(s);
         }
 
+
+
         public void HitNote(NoteType color)
         {
             SendString(color.ToString().ToUpper()[0].ToString());
         }
+
+        public void Open()
+        {
+            port.Open();
+        }
+
         public void Close()
         {
             port.Close();

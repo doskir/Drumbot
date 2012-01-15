@@ -15,10 +15,10 @@ namespace DrumBot
     }
     internal class Logic
     {
-        private Teensy _teensy;
-        public Logic(Teensy teensy)
+        private IDrumHardware _drumHardware;
+        public Logic(IDrumHardware drumHardware)
         {
-            _teensy = teensy;
+            _drumHardware = drumHardware;
         }
         public List<Note> CurrentNotes = new List<Note>();
         private int _framesSinceLastOrangeNote = 1000;
@@ -110,7 +110,7 @@ namespace DrumBot
                             continue;
                         orangeNoteTriggered = true;
                     }
-                    _teensy.HitNote(note.Color);
+                    _drumHardware.HitNote(note.Color);
                 }
                 else
                 {
