@@ -39,7 +39,7 @@ namespace DrumBot
                     for(int i = 0; i < imageArray.Length;i++)
                     {
                         CapturedImage image = imageArray[i];
-                        string filePath = string.Format(@"D:\flagged\{0}\{1}.png", _flagId, i);
+                        string filePath = string.Format(@"D:\flagged\{0}\{1}.png", _flagId, i.ToString().PadLeft(5, '0'));
                         image.Save(filePath);
                     }
                     Flagged = false;
