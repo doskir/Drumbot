@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using Emgu.CV;
@@ -23,19 +24,35 @@ namespace DrumBot
         private MMTimer captureTimer = new MMTimer();
 
         private Thread writerThread;
+        public bool Flagged;
+        private int _flagId;
         public void ImageWriter()
         {
             int frameCount = 0;
             while (true)
             {
-                while (ImageQueue.Count > 0)
+                if(Flagged)
+                {
+                    _flagId++;
+                    System.IO.Directory.CreateDirectory(@"D:\flagged\" + _flagId);
+                    CapturedImage[] imageArray = ImageQueue.ToArray();
+                    for(int i = 0; i < imageArray.Length;i++)
+                    {
+                        CapturedImage image = imageArray[i];
+                        string filePath = string.Format(@"D:\flagged\{0}\{1}.png", _flagId, i.ToString().PadLeft(5, '0'));
+                        image.Save(filePath);
+                    }
+                    Flagged = false;
+                }
+                //keep the last 100 images in the buffer
+                if (ImageQueue.Count > 100)
                 {
                     if (globCaptureStart == DateTime.MinValue)
                         globCaptureStart = DateTime.Now;
                     CapturedImage image = ImageQueue.Peek();
                     if (Recording)
                     {
-                        image.Save("D:\\captures\\" + frameCount.ToString().PadLeft(5, '0') + ".bmp");
+                        image.Save("D:\\captures\\" + frameCount.ToString().PadLeft(5, '0') + ".png");
                         frameCount++;
                     }
                     ImageQueue.Dequeue();
@@ -65,8 +82,7 @@ namespace DrumBot
             //now capturing
         }
         public CapturedImage MostRecentImage;
-        public Image<Bgr, byte> CurrentDisplayedImage;
-        private void DrawBigPicture()
+        public Image<Bgr,byte> GetBigPicture()
         {
             MCvFont font = new MCvFont(Emgu.CV.CvEnum.FONT.CV_FONT_HERSHEY_PLAIN, 1, 1);
             font.thickness = 2;
@@ -123,10 +139,7 @@ namespace DrumBot
                 //newImage.Draw(((int) note.DistanceToTarget).ToString(), ref font,
                 //              new Point(drawRectangle.Left, drawRectangle.Bottom), new Bgr(128, 128, 128));
             }
-
-            if (CurrentDisplayedImage != null)
-                CurrentDisplayedImage.Dispose();
-            CurrentDisplayedImage = newImage;
+            return newImage;
         }
         void captureTimer_Timer(object sender, EventArgs e)
         {
@@ -135,14 +148,15 @@ namespace DrumBot
             CapturedImage capturedImage = new CapturedImage(image, captureTime);
             MostRecentImage = capturedImage;
             _logic.UpdateAndPredictNotes(capturedImage);
-            DrawBigPicture();
-            ImageQueue.Enqueue(capturedImage);
-            globFrameCount++;
+            //anything below this line should not affect the main part of the bot
             TimeSpan timeElapsed = DateTime.Now - captureTime;
             if (timeElapsed.TotalMilliseconds > 45)
             {
                 Debug.WriteLine("WARNING: Capture took {0} ms.", timeElapsed.TotalMilliseconds);
             }
+            ImageQueue.Enqueue(capturedImage);
+            globFrameCount++;
+
         }
         public void StopCapturing()
         {
