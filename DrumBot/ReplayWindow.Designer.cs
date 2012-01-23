@@ -43,6 +43,11 @@
             this.button2 = new System.Windows.Forms.Button();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.button3 = new System.Windows.Forms.Button();
+            this.orangeButton = new System.Windows.Forms.Button();
+            this.redButton = new System.Windows.Forms.Button();
+            this.yellowButton = new System.Windows.Forms.Button();
+            this.blueButton = new System.Windows.Forms.Button();
+            this.greenButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.redTrack1PictureBox)).BeginInit();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.greenTrack1PictureBox)).BeginInit();
@@ -116,7 +121,7 @@
             this.panel2.Controls.Add(this.blueTrack2PictureBox);
             this.panel2.Controls.Add(this.yellowTrack2PictureBox);
             this.panel2.Controls.Add(this.redTrack2PictureBox);
-            this.panel2.Location = new System.Drawing.Point(373, 603);
+            this.panel2.Location = new System.Drawing.Point(529, 600);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(355, 136);
             this.panel2.TabIndex = 14;
@@ -156,7 +161,7 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(14, 12);
+            this.pictureBox1.Location = new System.Drawing.Point(96, 12);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(704, 576);
             this.pictureBox1.TabIndex = 15;
@@ -164,13 +169,17 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(313, 749);
+            this.button2.Location = new System.Drawing.Point(397, 751);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 16;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
+            // folderBrowserDialog1
+            // 
+            this.folderBrowserDialog1.SelectedPath = "D:\\flagged";
             // 
             // button3
             // 
@@ -182,11 +191,61 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // orangeButton
+            // 
+            this.orangeButton.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.orangeButton.Location = new System.Drawing.Point(373, 643);
+            this.orangeButton.Name = "orangeButton";
+            this.orangeButton.Size = new System.Drawing.Size(150, 23);
+            this.orangeButton.TabIndex = 18;
+            this.orangeButton.UseVisualStyleBackColor = false;
+            // 
+            // redButton
+            // 
+            this.redButton.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.redButton.Location = new System.Drawing.Point(373, 614);
+            this.redButton.Name = "redButton";
+            this.redButton.Size = new System.Drawing.Size(33, 23);
+            this.redButton.TabIndex = 19;
+            this.redButton.UseVisualStyleBackColor = false;
+            // 
+            // yellowButton
+            // 
+            this.yellowButton.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.yellowButton.Location = new System.Drawing.Point(412, 614);
+            this.yellowButton.Name = "yellowButton";
+            this.yellowButton.Size = new System.Drawing.Size(33, 23);
+            this.yellowButton.TabIndex = 20;
+            this.yellowButton.UseVisualStyleBackColor = false;
+            // 
+            // blueButton
+            // 
+            this.blueButton.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.blueButton.Location = new System.Drawing.Point(451, 614);
+            this.blueButton.Name = "blueButton";
+            this.blueButton.Size = new System.Drawing.Size(33, 23);
+            this.blueButton.TabIndex = 21;
+            this.blueButton.UseVisualStyleBackColor = false;
+            // 
+            // greenButton
+            // 
+            this.greenButton.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.greenButton.Location = new System.Drawing.Point(490, 614);
+            this.greenButton.Name = "greenButton";
+            this.greenButton.Size = new System.Drawing.Size(33, 23);
+            this.greenButton.TabIndex = 22;
+            this.greenButton.UseVisualStyleBackColor = false;
+            // 
             // ReplayWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(733, 784);
+            this.ClientSize = new System.Drawing.Size(901, 784);
+            this.Controls.Add(this.greenButton);
+            this.Controls.Add(this.blueButton);
+            this.Controls.Add(this.yellowButton);
+            this.Controls.Add(this.redButton);
+            this.Controls.Add(this.orangeButton);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.pictureBox1);
@@ -227,5 +286,10 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button orangeButton;
+        private System.Windows.Forms.Button redButton;
+        private System.Windows.Forms.Button yellowButton;
+        private System.Windows.Forms.Button blueButton;
+        private System.Windows.Forms.Button greenButton;
     }
 }

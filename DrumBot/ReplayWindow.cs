@@ -46,6 +46,7 @@ namespace DrumBot
         }
         private void ReloadTracks()
         {
+            _fakeOutput.ResetHitIndicators();
             logic.CurrentNotes.Clear();
             if (previousImage != null)
                 previousImage.Dispose();
@@ -62,7 +63,26 @@ namespace DrumBot
             MostRecentImage = currentImage;
             logic.UpdateAndPredictNotes(MostRecentImage);
             DrawBigPicture();
-
+            if(_fakeOutput.RedHit)
+                redButton.BackColor = Color.Red;
+            else
+                redButton.BackColor = Color.Gray;
+            if(_fakeOutput.YellowHit)
+                yellowButton.BackColor = Color.Yellow;
+            else
+                yellowButton.BackColor = Color.Gray;
+            if(_fakeOutput.BlueHit)
+                blueButton.BackColor = Color.Blue;
+            else
+                blueButton.BackColor = Color.Gray;
+            if (_fakeOutput.GreenHit)
+                greenButton.BackColor = Color.LawnGreen;
+            else
+                greenButton.BackColor = Color.Gray;
+            if(_fakeOutput.OrangeHit)
+                orangeButton.BackColor = Color.Orange;
+            else
+                orangeButton.BackColor = Color.Gray;
 
 
 
@@ -160,6 +180,7 @@ namespace DrumBot
         private int nextImageIndex = 0;
         private void button2_Click_1(object sender, EventArgs e)
         {
+            _fakeOutput.ResetHitIndicators();
             previousImage = currentImage;
             currentImage = new CapturedImage(new Image<Bgr, byte>(_imageFileList[nextImageIndex]),
                                              previousImage.CaptureTime.AddMilliseconds(40));
@@ -169,6 +190,29 @@ namespace DrumBot
             logic.UpdateAndPredictNotes(MostRecentImage);
             DrawBigPicture();
             RefreshPictureBoxes();
+            if (_fakeOutput.RedHit)
+                redButton.BackColor = Color.Red;
+            else
+                redButton.BackColor = Color.Gray;
+            if (_fakeOutput.YellowHit)
+                yellowButton.BackColor = Color.Yellow;
+            else
+                yellowButton.BackColor = Color.Gray;
+            if (_fakeOutput.BlueHit)
+                blueButton.BackColor = Color.Blue;
+            else
+                blueButton.BackColor = Color.Gray;
+            if (_fakeOutput.GreenHit)
+                greenButton.BackColor = Color.LawnGreen;
+            else
+                greenButton.BackColor = Color.Gray;
+            if (_fakeOutput.OrangeHit)
+                orangeButton.BackColor = Color.Orange;
+            else
+                orangeButton.BackColor = Color.Gray;
+
+
+
             //just to get the debug console output
             //foreach(Note n in logic.CurrentNotes)
             //{
