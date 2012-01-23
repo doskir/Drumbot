@@ -13,9 +13,39 @@ namespace DrumBot
             set { throw new NotImplementedException(); }
         }
 
+        public bool RedHit;
+        public bool YellowHit;
+        public bool BlueHit;
+        public bool GreenHit;
+        public bool OrangeHit;
         public void HitNote(NoteType color)
         {
-            throw new NotImplementedException();
+            switch (color)
+            {
+                case NoteType.Red:
+                    RedHit = true;
+                    break;
+                case NoteType.Yellow:
+                    YellowHit = true;
+                    break;
+                case NoteType.Blue:
+                    BlueHit = true;
+                    break;
+                case NoteType.Green:
+                    GreenHit = true;
+                    break;
+                case NoteType.Orange:
+                    OrangeHit = true;
+                    break;
+            }
+        }
+        public void ResetHitIndicators()
+        {
+            RedHit = false;
+            YellowHit = false;
+            BlueHit = false;
+            GreenHit = false;
+            OrangeHit = false;
         }
 
         public void Open()
