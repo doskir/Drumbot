@@ -41,8 +41,8 @@ namespace DrumBot
             {
                 //i have no idea whats wrong so lets just ignore the problem for now
                 try
-                {               
-                    liveViewPictureBox.Image = cv.CurrentDisplayedImage.Bitmap;
+                {
+                    liveViewPictureBox.Image = cv.GetBigPicture().Bitmap;
                 }
                 catch (Exception)
                 {
@@ -70,6 +70,17 @@ namespace DrumBot
         private void button2_Click(object sender, EventArgs e)
         {
             _teensy.WriteAllowed = !_teensy.WriteAllowed;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            cv.Flagged = true;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            ReplayWindow replayWindow = new ReplayWindow();
+            replayWindow.Show();
         }
     }
 }
