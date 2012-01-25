@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
@@ -102,7 +103,7 @@ namespace DrumBot
                 //get the predicted position in the CURRENT frame
                 note.UpdateUsingPrediction();
                 //check if the predicted position in the next frame is at the target
-                if (note.AtTargetPoint(note.PredictedPosition))
+                if (note.AtTargetPoint(note.PredictedPosition) || note.FramesUntilHit <= 2)
                 {
                     if (note.Color == NoteType.Orange)
                     {
