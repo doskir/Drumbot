@@ -185,6 +185,7 @@ namespace DrumBot
             rightCover.Add(new Point(95, playArea.Height - 1));
             redTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
 
+            redTrack = redTrack.Rotate(5.0, new Bgr(0, 0, 0), true);
 
             return redTrack;
         }
@@ -229,6 +230,7 @@ namespace DrumBot
             rightCover.Add(new Point(95, 0));
             greenTrack.FillConvexPoly(rightCover.ToArray(), new Bgr(0, 0, 0));
 
+            greenTrack = greenTrack.Rotate(-5.0, new Bgr(0, 0, 0), true);
             return greenTrack;
         }
         public static Image<Bgr, byte> SmoothImage(Image<Bgr, byte> image)
