@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
+using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.UI;
@@ -16,12 +18,12 @@ namespace DrumBot
     class CaptureVideo
     {
         public Queue<CapturedImage> ImageQueue = new Queue<CapturedImage>();
-        public bool Recording = false;
-        private Capture globCapture;
+        public bool Recording;
         public DateTime globCaptureStart;
         public int globFrameCount;
 
-        private MMTimer captureTimer = new MMTimer();
+
+        private AForge.Video.DirectShow.VideoCaptureDevice _captureDevice;
 
         private Thread writerThread;
         public bool Flagged;
@@ -72,14 +74,43 @@ namespace DrumBot
             writerThread.Name = "writerThread";
             writerThread.Start();
 
-            globCapture = new Capture();
-            globCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_HEIGHT, 576);
-            globCapture.SetCaptureProperty(Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FRAME_WIDTH, 704);
+            var videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            _captureDevice = new VideoCaptureDevice(videoDevices[0].MonikerString);
+            _captureDevice.DesiredFrameSize = new Size(704, 576);
+            _captureDevice.DesiredFrameRate = fps;
+            _captureDevice.NewFrame += new AForge.Video.NewFrameEventHandler(camera_NewFrame);
+            _captureDevice.Start();
             globFrameCount = 0;
-            // start timer
-            captureTimer.Timer += new EventHandler(captureTimer_Timer);
-            captureTimer.Start((uint) (1000/fps), true);
+            globCaptureStart = DateTime.Now;
             //now capturing
+        }
+
+        void camera_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
+        {
+            globFrameCount++;
+            DateTime captureTime = DateTime.Now;
+            Bitmap frame = eventArgs.Frame;
+            BitmapData bmpData = frame.LockBits(new Rectangle(0, 0, frame.Width, frame.Height), ImageLockMode.ReadWrite,
+                                                frame.PixelFormat);
+            Image<Bgr, byte> image = new Image<Bgr, byte>(frame.Width, frame.Height, bmpData.Stride, bmpData.Scan0);
+            //to prevent any corrupted memory errors that crop up for some reason
+            Image<Bgr, byte> image2 = image.Clone();
+            //dispose all unused image data to prevent memory leaks
+            image.Dispose();
+            frame.UnlockBits(bmpData);
+            frame.Dispose();
+            eventArgs.Frame.Dispose();
+            CapturedImage capturedImage = new CapturedImage(image2, captureTime);
+            MostRecentImage = capturedImage;
+            _logic.UpdateAndPredictNotes(capturedImage);
+            TimeSpan timeElapsed = DateTime.Now - captureTime;
+            if (timeElapsed.TotalMilliseconds > 45)
+            {
+                Debug.WriteLine("WARNING: Capture took {0} ms.", timeElapsed.TotalMilliseconds);
+            }
+            ImageQueue.Enqueue(capturedImage);
+            
         }
         public CapturedImage MostRecentImage;
         public Image<Bgr,byte> GetBigPicture()
@@ -141,28 +172,9 @@ namespace DrumBot
             }
             return newImage;
         }
-        void captureTimer_Timer(object sender, EventArgs e)
-        {
-            DateTime captureTime = DateTime.Now;
-            Image<Bgr, Byte> image = globCapture.QueryFrame();
-            CapturedImage capturedImage = new CapturedImage(image, captureTime);
-            MostRecentImage = capturedImage;
-            _logic.UpdateAndPredictNotes(capturedImage);
-            //anything below this line should not affect the main part of the bot
-            TimeSpan timeElapsed = DateTime.Now - captureTime;
-            if (timeElapsed.TotalMilliseconds > 45)
-            {
-                Debug.WriteLine("WARNING: Capture took {0} ms.", timeElapsed.TotalMilliseconds);
-            }
-            ImageQueue.Enqueue(capturedImage);
-            globFrameCount++;
-
-        }
         public void StopCapturing()
         {
-            captureTimer.Stop();
-            captureTimer.Dispose();
-            globCapture.Dispose();
+            _captureDevice.Stop();
             writerThread.Abort();
         }
     }
