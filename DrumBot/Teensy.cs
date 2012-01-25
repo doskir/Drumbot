@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DrumBot
 {
-    class Teensy : IDisposable,IDrumHardware
+    class Teensy : IDrumHardware
     {
         private SerialPort port;
         private bool _writeAllowed;
@@ -22,7 +22,6 @@ namespace DrumBot
             {
                 port = new SerialPort(serialPortName, 9600);
                 Open();
-                WriteAllowed = true;
             }
             catch
             {
