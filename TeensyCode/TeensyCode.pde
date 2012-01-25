@@ -67,19 +67,19 @@ void loop()
     {
     case 'R':
       digitalWrite(redPin,HIGH);
-      redLowMillis = millis() + 10;
+      redLowMillis = millis() + 25;
       break;
     case 'Y':
       digitalWrite(yellowPin,HIGH);
-      yellowLowMillis = millis() + 10;
+      yellowLowMillis = millis() + 25;
       break;
     case 'B':
       digitalWrite(bluePin,HIGH);
-      blueLowMillis = millis() + 10;
+      blueLowMillis = millis() + 25;
       break;
     case 'G':
       digitalWrite(greenPin,HIGH);
-      greenLowMillis = millis() + 10;
+      greenLowMillis = millis() + 25;
       break;
     case 'O':
       digitalWrite(orangePin,HIGH);
