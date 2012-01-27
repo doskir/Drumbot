@@ -60,7 +60,7 @@ namespace DrumBot
                 double ratio = rectangle.Width/(double) rectangle.Height;
                 if (ratio >= 3.70)
                     color = NoteType.Orange;
-                if (ratio < 1.0)
+                if (ratio < 2.0)
                 {
                     //split it up
                     int pieces = (int) Math.Round(3.5/ratio);
